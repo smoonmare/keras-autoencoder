@@ -71,11 +71,11 @@ autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
 
 # Create Dataset and specify training routine
 def train_batches(just_load_dataset=False):
-    batches = 256 # number of items in the batch
-    batch = 0 
-    batch_nb = 0 
+    batches = 256 # Number of items in the batch at the same time
+    batch = 0 # Number of images in the current batch
+    batch_nb = 0 # Current batch index
     max_batches = -1 
-    ep = 4 
+    ep = 4 # Number of epochs
     images = []
     # Input img for training
     x_train_n = []
@@ -115,3 +115,33 @@ def train_batches(just_load_dataset=False):
 # Loading preTrained model
 x_train_n, x_train_down = train_batches(just_load_dataset=True)
 autoencoder.load_weights('data/sr.img_net.mse.final_model5.no_patch.weights.best.hdf5')
+
+# Model Predictions and visualizing the results
+encoder.load_weights('data/encoder_weights.hdf5')
+encoded_imgs = encoder.predict(x_train_down)
+#encoded_img.shape # (256, 64, 64, 256)
+# SuperResolution - sr
+sr_1 = np.clip(autoencoder.predict(x_train_down, 0.0, 1.0))
+image_index = np.random.randint(0,256)
+
+plt.figure(figsize=(128, 128))
+i = 1
+ax = plt.subplot(10, 10, i)
+plt.imshow(x_train_down[image_index])
+
+i += 1
+ax = plt.subplot(10, 10, i)
+plt.imshow(x_train_down[image_index], interpolation='bicubic')
+
+i += 1
+ax = plt.subplot(10, 10, i)
+plt.imshow(encoded_imgs[image_index].reshape((64 * 64, 256)))
+
+i += 1
+ax = plt.subplot(10, 10, i)
+plt.imshow(sr_1[image_index])
+
+i += 1
+ax = plt.subplot(10, 10, i)
+plt.imshow(x_train_n[image_index])
+#plt.show()
