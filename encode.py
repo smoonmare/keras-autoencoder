@@ -111,3 +111,7 @@ def train_batches(just_load_dataset=False):
                         x_train_down = []
                         batch = 0
     return x_train_n2, x_train_down2
+
+# Loading preTrained model
+x_train_n, x_train_down = train_batches(just_load_dataset=True)
+autoencoder.load_weights('data/sr.img_net.mse.final_model5.no_patch.weights.best.hdf5')
