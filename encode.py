@@ -67,3 +67,47 @@ decoded = Conv2D(3, (3, 3),
                  activation='relu',
                  activity_regularizer=regularizers.l1(10e-10))(layer_15)
 autoencoder = Model(img_input, decoded)
+autoencoder.compile(optimizer='adadelta', loss='mean_squared_error')
+
+# Create Dataset and specify training routine
+def train_batches(just_load_dataset=False):
+    batches = 256 # number of items in the batch
+    batch = 0 
+    batch_nb = 0 
+    max_batches = -1 
+    ep = 4 
+    images = []
+    # Input img for training
+    x_train_n = []
+    x_train_down = []
+    # Output
+    x_train_n2 = [] 
+    x_train_down2 = []
+    for root, dirnames, filenames in os.walk("/data/cars_train"):
+        for filename in filenames:
+            if re.search("\.(jpg|jpeg|JPEG|png|bmp|tiff)$", filename):
+                if batch_nb == max_batches: 
+                    return x_train_n2, x_train_down2
+                filepath = os.path.join(root, filename)
+                image = pyplot.imread(filepath)
+                if len(image.shape) > 2:   
+                    image_resized = resize(image, (256, 256))
+                    x_train_n.append(image_resized)
+                    x_train_down.append(rescale(rescale(image_resized, 0.5), 2.0))
+                    batch += 1
+                    if batch == batches:
+                        batch_nb += 1
+                        x_train_n2 = np.array(x_train_n)
+                        x_train_down2 = np.array(x_train_down)
+                        if just_load_dataset:
+                            return x_train_n2, x_train_down2
+                        print('Training batch', batch_nb, '(', batches, ')')
+                        autoencoder.fit(x_train_down2, x_train_n2,
+                            epochs=ep,
+                            batch_size=10,
+                            shuffle=True,
+                            validation_split=0.15)
+                        x_train_n = []
+                        x_train_down = []
+                        batch = 0
+    return x_train_n2, x_train_down2
