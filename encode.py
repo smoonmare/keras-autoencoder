@@ -37,6 +37,33 @@ layer_6 = MaxPooling2D(padding='same')(layer_5)
 layer_7 = Conv2D(256, (3, 3),
                  padding='same',
                  activation='relu',
-                 activity_reglarizer=regularizers.l1(10e-10))(layer_6)
+                 activity_regularizer=regularizers.l1(10e-10))(layer_6)
 encoder = Model(img_input, layer_7)
 # encoder.summary() # summary of our model
+
+# Decoder
+layer_8 = UpSampling2D()(layer_7)
+layer_9 = Conv2D(128, (3, 3),
+                 padding='same',
+                 activation='relu',
+                 activity_regularizer=regularizers.l1(10e-10))(layer_8)
+layer_10 = Conv2D(128, (3, 3),
+                 padding='same',
+                 activation='relu',
+                 activity_regularizer=regularizers.l1(10e-10))(layer_9)
+layer_11 = add([layer_5, layer_10])
+layer_12 = UpSampling2D()(layer_11)
+layer_13 = Conv2D(64, (3, 3),
+                 padding='same',
+                 activation='relu',
+                 activity_regularizer=regularizers.l1(10e-10))(layer_12)
+layer_14 = Conv2D(64, (3, 3),
+                 padding='same',
+                 activation='relu',
+                 activity_regularizer=regularizers.l1(10e-10))(layer_13)
+layer_15 = add([layer_2, layer_14])
+decoded = Conv2D(3, (3, 3),
+                 padding='same',
+                 activation='relu',
+                 activity_regularizer=regularizers.l1(10e-10))(layer_15)
+autoencoder = Model(img_input, decoded)
